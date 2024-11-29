@@ -33,7 +33,7 @@ namespace ZymLabs.NSwag.FluentValidation.Tests
             var schema = JsonSchema.FromType<MockValidationTarget>(jsonSchemaGeneratorSettings);
 
             // Assert
-            Assert.NotEmpty(schema.Properties["EmailAddress"].Pattern);
+            Assert.NotEmpty(schema.Properties["EmailAddress"].Pattern!);
         }
         
         [Fact]
@@ -46,7 +46,7 @@ namespace ZymLabs.NSwag.FluentValidation.Tests
             var schema = JsonSchema.FromType<MockValidationTarget>(jsonSchemaGeneratorSettings);
 
             // Assert
-            Assert.NotEmpty(schema.Properties["EmailAddress"].Pattern);
+            Assert.NotEmpty(schema.Properties["EmailAddress"].Pattern!);
         }
 
         [Fact]
@@ -193,33 +193,34 @@ namespace ZymLabs.NSwag.FluentValidation.Tests
             Assert.Contains("NotNull", schema.RequiredProperties);
             Assert.Equal(1, schema.Properties["NotEmpty"].MinLength);
         }
-        
-        // [Fact]
-        // public void ProcessIncludesDefaultRuleNotEmptyOnTargetClassExtended()
-        // {
-        //     // Arrange
-        //     var jsonSchemaGeneratorSettings = CreateJsonSchemaGeneratorSettingsExtended();
 
-        //     // Act
-        //     var schema = JsonSchema.FromType<MockValidationTargetExtended>(jsonSchemaGeneratorSettings);
+        [Fact]
+        public void ProcessIncludesDefaultRuleNotEmptyOnTargetClassExtended()
+        {
+            // Arrange
+            var jsonSchemaGeneratorSettings = CreateJsonSchemaGeneratorSettingsExtended();
 
-        //     // Assert
-        //     // Assert.Equal(1, schema.Properties["ChildProperty"].MinLength);
-        //     // Assert.False(schema.Properties["ChildProperty"].IsNullable(SchemaType.OpenApi3));
+            // Act
+            var schema = JsonSchema.FromType<MockValidationTargetExtended>(jsonSchemaGeneratorSettings);
 
-        //     Assert.Equal(1, schema.Properties["NotEmpty"].MinLength);
-        //     Assert.False(schema.Properties["NotEmpty"].IsNullable(SchemaType.OpenApi3));
-            
-        //     var notEmptyChildProperty = schema.Properties["NotEmptyChild"];
-        //     Assert.Empty(notEmptyChildProperty.OneOf);
-        //     Assert.NotNull(notEmptyChildProperty.Reference);
-            
-        //     // Unable to get this to work right now
-        //     // var notEmptyChildPropertyEnum = schema.Properties["NotEmptyChildEnum"];
-        //     // Assert.Empty(notEmptyChildPropertyEnum.OneOf);
-        //     // Assert.NotNull(notEmptyChildPropertyEnum.Reference);
-        // }
-        
+            // Assert
+            var extendedProperty = schema.ActualProperties["ExtendedProperty"];
+            Assert.Equal(1, extendedProperty.MinLength);
+            Assert.False(extendedProperty.IsNullable(SchemaType.OpenApi3));
+
+            var inheritedNotEmptyProperty = schema.InheritedSchema!.Properties["NotEmpty"];
+            Assert.Equal(1, inheritedNotEmptyProperty.MinLength);
+            Assert.False(inheritedNotEmptyProperty.IsNullable(SchemaType.OpenApi3));
+
+            var inheritedNotEmptyChildProperty = schema.InheritedSchema.Properties["NotEmptyChild"];
+            Assert.Empty(inheritedNotEmptyChildProperty.OneOf);
+            Assert.NotNull(inheritedNotEmptyChildProperty.Reference);
+
+            var inheritedNotEmptyChildPropertyEnum = schema.InheritedSchema.Properties["NotEmptyChildEnum"];
+            Assert.Empty(inheritedNotEmptyChildPropertyEnum.OneOf);
+            Assert.NotNull(inheritedNotEmptyChildPropertyEnum.Reference);
+        }
+
         private JsonSchemaGeneratorSettings CreateJsonSchemaGeneratorSettings()
         {
             var testValidator = new MockValidationTargetValidator();

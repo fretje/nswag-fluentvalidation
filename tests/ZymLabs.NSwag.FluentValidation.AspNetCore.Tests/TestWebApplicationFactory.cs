@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZymLabs.NSwag.FluentValidation.AspNetCore.Tests
 {
+    [Obsolete]
     public class TestWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

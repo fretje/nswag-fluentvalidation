@@ -1,6 +1,5 @@
 using System;
 using FluentValidation;
-using FluentValidation.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -8,6 +7,7 @@ using Xunit;
 
 namespace ZymLabs.NSwag.FluentValidation.AspNetCore.Tests
 {
+    [Obsolete]
     public class HttpContextServiceProviderValidationFactoryTest
     {
         [Fact]

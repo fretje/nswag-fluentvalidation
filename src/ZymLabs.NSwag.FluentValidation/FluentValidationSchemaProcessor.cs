@@ -16,6 +16,7 @@ namespace ZymLabs.NSwag.FluentValidation
     /// </summary>
     public class FluentValidationSchemaProcessor : ISchemaProcessor
     {
+        [Obsolete]
         private readonly IValidatorFactory? _validatorFactory;
         private readonly IServiceProvider? _serviceProvider;
         private readonly ILogger _logger;
@@ -81,9 +82,9 @@ namespace ZymLabs.NSwag.FluentValidation
         /// <inheritdoc />
         public void Process(SchemaProcessorContext context)
         {
-            if (!context.Schema.IsObject || context.Schema.Properties.Count == 0)
+            if (context.Schema.ActualProperties.Count 
+                + context.Schema.AllInheritedSchemas.SelectMany(x => x.ActualProperties).Count() == 0)
             {
-                // Ignore other 
                 // Ignore objects with no properties
                 return;
             }
@@ -114,7 +115,7 @@ namespace ZymLabs.NSwag.FluentValidation
 
             _logger.LogDebug($"Applying FluentValidation rules to swagger schema for type '{context.ContextualType}'");
 
-            ApplyRulesToSchema(context, validator);
+            ApplyRulesToSchema(context, validator, context.Schema);
 
             try
             {
@@ -126,12 +127,8 @@ namespace ZymLabs.NSwag.FluentValidation
             }
         }
 
-        private void ApplyRulesToSchema(SchemaProcessorContext context, IValidator validator)
+        private void ApplyRulesToSchema(SchemaProcessorContext context, IValidator validator, JsonSchema schema)
         {
-            _logger.LogDebug($"Applying FluentValidation rules to swagger schema for type '{context.ContextualType}'");
-
-            var schema = context.Schema;
-
             // Loop through properties
             foreach (var key in schema.Properties.Keys)
             {
@@ -145,10 +142,10 @@ namespace ZymLabs.NSwag.FluentValidation
                         {
                             continue;
                         }
-                        
+
                         try
                         {
-                            rule.Apply(new RuleContext(context, key, propertyValidator));
+                            rule.Apply(new RuleContext(context, schema, key, propertyValidator));
 
                             _logger.LogDebug(
                                 $"Rule '{rule.Name}' applied for property '{context.ContextualType.Name}.{key}'"
@@ -162,6 +159,16 @@ namespace ZymLabs.NSwag.FluentValidation
                         }
                     }
                 }
+            }
+
+            if (schema.HasReference)
+            {
+                ApplyRulesToSchema(context, validator, schema.Reference!);
+            }
+
+            foreach (var allOfSchema in schema.AllOf)
+            {
+                ApplyRulesToSchema(context, validator, allOfSchema);
             }
         }
 
@@ -213,7 +220,7 @@ namespace ZymLabs.NSwag.FluentValidation
                             break;
                         }
 
-                        ApplyRulesToSchema(context, includeValidator);
+                        ApplyRulesToSchema(context, includeValidator, context.Schema);
                         AddRulesFromIncludedValidators(context, includeValidator);
                     }
                 }
@@ -234,7 +241,7 @@ namespace ZymLabs.NSwag.FluentValidation
                         propertyValidator is INotNullValidator or INotEmptyValidator,
                     Apply = context =>
                     {
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
 
                         if (!schema.RequiredProperties.Contains(context.PropertyKey))
                             schema.RequiredProperties.Add(context.PropertyKey);
@@ -245,7 +252,7 @@ namespace ZymLabs.NSwag.FluentValidation
                     Matches = propertyValidator => propertyValidator is INotNullValidator,
                     Apply = context =>
                     {
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
 
                         schema.Properties[context.PropertyKey].IsNullableRaw = false;
 
@@ -270,7 +277,7 @@ namespace ZymLabs.NSwag.FluentValidation
                     Matches = propertyValidator => propertyValidator is INotEmptyValidator,
                     Apply = context =>
                     {
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
 
                         schema.Properties[context.PropertyKey].IsNullableRaw = false;
 
@@ -297,7 +304,7 @@ namespace ZymLabs.NSwag.FluentValidation
                     Matches = propertyValidator => propertyValidator is ILengthValidator,
                     Apply = context =>
                     {
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
 
                         var lengthValidator = (ILengthValidator) context.PropertyValidator;
 
@@ -317,7 +324,7 @@ namespace ZymLabs.NSwag.FluentValidation
                     {
                         var regularExpressionValidator = (IRegularExpressionValidator) context.PropertyValidator;
 
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
                         schema.Properties[context.PropertyKey].Pattern = regularExpressionValidator.Expression;
                     }
                 },
@@ -331,7 +338,7 @@ namespace ZymLabs.NSwag.FluentValidation
                         if (comparisonValidator.ValueToCompare.IsNumeric())
                         {
                             var valueToCompare = Convert.ToDecimal(comparisonValidator.ValueToCompare);
-                            var schema = context.SchemaProcessorContext.Schema;
+                            var schema = context.Schema;
                             var schemaProperty = schema.Properties[context.PropertyKey];
 
                             if (comparisonValidator.Comparison == Comparison.GreaterThanOrEqual)
@@ -361,7 +368,7 @@ namespace ZymLabs.NSwag.FluentValidation
                     Apply = context =>
                     {
                         var betweenValidator = (IBetweenValidator) context.PropertyValidator;
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
                         var schemaProperty = schema.Properties[context.PropertyKey];
 
                         if (betweenValidator.From.IsNumeric())
@@ -397,7 +404,7 @@ namespace ZymLabs.NSwag.FluentValidation
                                                                     ),
                     Apply = context =>
                     {
-                        var schema = context.SchemaProcessorContext.Schema;
+                        var schema = context.Schema;
                         schema.Properties[context.PropertyKey].Pattern = "^[^@]+@[^@]+$"; // [^@] All chars except @
                     }
                 },

@@ -12,9 +12,6 @@
       <Nullable>enable</Nullable>
       <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-    
-    <ItemGroup>
-    </ItemGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DocumentationFile>bin\Debug\ZymLabs.NSwag.FluentValidation.AspNetCore.xml</DocumentationFile>
@@ -26,7 +23,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-      <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
+      <PackageReference Include="System.Text.Encodings.Web" Version="9.0.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -2,6 +2,6 @@ namespace ZymLabs.NSwag.FluentValidation.Tests
 {
     public class MockValidationTargetExtended : MockValidationTarget
     {
-        public string ChildProperty = "";
+        public string ExtendedProperty { get; set; } = "";
     }
 }

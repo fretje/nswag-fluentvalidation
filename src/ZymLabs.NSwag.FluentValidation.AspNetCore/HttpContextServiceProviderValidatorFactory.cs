@@ -8,6 +8,7 @@ namespace ZymLabs.NSwag.FluentValidation.AspNetCore
     /// Allows for the creation of validators that have dependencies on scoped services.
     /// <see href="https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation/blob/master/src/MicroElements.Swashbuckle.FluentValidation/HttpContextServiceProviderValidatorFactory.cs"/>
     /// </summary>
+    [Obsolete]
     public class HttpContextServiceProviderValidatorFactory : ValidatorFactoryBase
     {
         private readonly IHttpContextAccessor _httpContextAccessor;

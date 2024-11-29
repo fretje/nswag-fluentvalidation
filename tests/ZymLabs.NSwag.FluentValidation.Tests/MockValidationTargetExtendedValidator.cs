@@ -7,7 +7,7 @@ namespace ZymLabs.NSwag.FluentValidation.Tests
         /// <inheritdoc />
         public MockValidationTargetExtendedValidator()
         {
-            // RuleFor(sample => sample.ChildProperty).NotEmpty();
+            RuleFor(sample => sample.ExtendedProperty).NotEmpty();
             RuleFor(sample => sample.NotEmpty).NotEmpty();
         }
     }
